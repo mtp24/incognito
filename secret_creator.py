@@ -17,13 +17,8 @@ def main():
     file_path = "./data/ground_truth.csv"
 
     df = pd.read_csv(file_path, sep=',', engine='c', na_filter=False, low_memory=False, index_col=0)
-   # df.columns = T_COL.values()
-    print(df)
 
     df['hours'] = df.apply(trunc_hours, axis=1)
-
-   # for row in df.iterrows():
-    #   row[1][T_COL['hours']] = '00:00'
 
     print(df)
 
