@@ -27,7 +27,7 @@ def main():
 
     print(df)
 
-    df.to_csv("./tachatte.csv", index=False)
+    df.to_csv("./hideData.csv")
 
     print("All clear")
 
