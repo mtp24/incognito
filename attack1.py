@@ -99,7 +99,7 @@ def main():
     """
     print("Beginning of the script")
 
-    file_path = "./data/ground_truth.csv"
+    file_path = "./data/ouputTestprice.csv"
     global users_items
     global users_items_sorted
 
@@ -110,14 +110,14 @@ def main():
     nbUser = len(users_items_sorted)
     print ("nbUser", nbUser)
 
-
-   # for i in range (1,6):
-    #    find_uniqueness_top_items(i)
+  #  for i in range (1,6):
+      #  find_uniqueness_top_items(i)
      #   print("Nb unique d'user: ", len(unique_top_user), ", pour", i, "articles")
 
 #    print(users_items_sorted)
     find_uniqueness_random_items(5, 6)
-    print(unique_users_random_items)
+    #print(unique_users_random_items)
+  #  print(len(unique_users_random_items))
 
 
     print("All clear")
