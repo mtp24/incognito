@@ -10,30 +10,28 @@ unique_top_user = []
 unique_users_random_items = []
 users_list_items = {}
 
-def search_id(row):
+def search_id(row, u_items):
 
     id_user = row[T_COL['id_user']]
     id_product = row[T_COL['id_item']]
     qty = row[T_COL['qty']]
 
 
-    if id_user in users_items:
-        if id_product in users_items[id_user]:
-            users_items[id_user][id_product] += qty
+    if id_user in u_items:
+        if id_product in u_items[id_user]:
+            u_items[id_user][id_product] += qty
         else:
-            users_items[id_user][id_product] = qty
+            u_items[id_user][id_product] = qty
             users_list_items[id_user].append(id_product)
     else:
-        users_items[id_user] = {
+        u_items[id_user] = {
             id_product: qty
         }
         users_list_items[id_user] = [id_product]
 
-def sort_items():
-    global users_items
-    global users_items_sorted
-    for user in users_items.items():
-        users_items_sorted[user[0]] = (sorted(user[1].items(), key=lambda t: t[1], reverse=True))
+def sort_items(u_items, u_items_sorted):
+    for user in u_items.items():
+        u_items_sorted[user[0]] = (sorted(user[1].items(), key=lambda t: t[1], reverse=True))
 
 def find_uniqueness_top_items(number_items):
     global users_items_sorted
@@ -59,24 +57,21 @@ def find_uniqueness_top_items(number_items):
                 unique_top_user.append(user)
 
 
-def find_uniqueness_random_items(nb_repetition, nb_items):
-    global users_items_sorted
-    global unique_users_random_items
-    unique_users_random_items = []
-    for user in users_list_items:
-        nb_purchased_items = len(users_list_items[user])
+def find_uniqueness_random_items(nb_repetition, nb_items, u_list_items, unique_u_random_items):
+    for user in u_list_items:
+        nb_purchased_items = len(u_list_items[user])
         items_user = []
         for i in range(0, nb_repetition):
             items_user = []
             for j in range(0, nb_items):
                 randomIndex = random.randrange(0, nb_purchased_items)
-                items_user.append(users_list_items[user][randomIndex])
+                items_user.append(u_list_items[user][randomIndex])
             uniqueness = True
-            for other_user in users_list_items:
+            for other_user in u_list_items:
                 if uniqueness == False:
                     break
                 if user != other_user:
-                    if set(items_user).issubset(users_list_items[other_user]):
+                    if set(items_user).issubset(u_list_items[other_user]):
                     #    print("")
                     #    print("-------")
                     #    print("user", user)
@@ -87,8 +82,8 @@ def find_uniqueness_random_items(nb_repetition, nb_items):
                         uniqueness = False
                         break
 
-            if uniqueness == True and {user : items_user} not in unique_users_random_items:
-                unique_users_random_items.append({user: items_user})
+            if uniqueness == True and {user : items_user} not in unique_u_random_items:
+                unique_u_random_items.append({user: items_user})
                 break
 
 
@@ -99,25 +94,27 @@ def main():
     """
     print("Beginning of the script")
 
-    file_path = "./data/ouputTestprice.csv"
-    global users_items
-    global users_items_sorted
+    file_path = "./data/ground_truth.csv"
+  #  global users_items
+#    global users_items_sorted
 
     df = pd.read_csv(file_path, sep=',', engine='c', na_filter=False, low_memory=False)
 
-    df.apply(search_id, axis=1)
-    sort_items()
+    df.apply(lambda row: search_id(row, users_items), axis=1)
+    sort_items(users_items, users_items_sorted)
     nbUser = len(users_items_sorted)
     print ("nbUser", nbUser)
 
-  #  for i in range (1,6):
-      #  find_uniqueness_top_items(i)
+
+   # for i in range (1,6):
+    #    find_uniqueness_top_items(i)
      #   print("Nb unique d'user: ", len(unique_top_user), ", pour", i, "articles")
 
 #    print(users_items_sorted)
-    find_uniqueness_random_items(5, 6)
-    #print(unique_users_random_items)
-  #  print(len(unique_users_random_items))
+   # print(users_list_items)
+    unique_users_random_items = []
+    find_uniqueness_random_items(5, 6, users_list_items, unique_users_random_items)
+    print(len(unique_users_random_items))
 
 
     print("All clear")
