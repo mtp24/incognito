@@ -143,12 +143,12 @@ def main():
 
     print("Nb identified", len(id_matching))
 
-    with open('dict.csv', 'wb') as csv_file:
-        writer = csv.writer(csv_file)
-        for key, value in unique_users_random_items_anonymized.items():
-            print("key", key)
-            print("value", value)
-            writer.writerow([key, value])
+  #  with open('dict.csv', 'wb') as csv_file:
+  #      writer = csv.writer(csv_file)
+  #      for key, value in unique_users_random_items_anonymized.items():
+  #          print("key", key)
+  #          print("value", value)
+  #          writer.writerow([key, value])
 
 
     # for i in range (1,6):
