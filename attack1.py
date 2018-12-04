@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+import time
 import csv
 from collections import OrderedDict
 
@@ -28,9 +29,11 @@ def search_id(row, u_items, u_list_items):
         }
         u_list_items[id_user] = [id_product]
 
+
 def sort_items(u_items, u_items_sorted):
     for user in u_items.items():
         u_items_sorted[user[0]] = (sorted(user[1].items(), key=lambda t: t[1], reverse=True))
+
 
 def find_uniqueness_top_items(number_items):
     global users_items_sorted
@@ -88,7 +91,6 @@ def find_uniqueness_random_items(nb_repetition, nb_items, u_list_items, unique_u
 
 def file_analysis(path, u_items,u_list_items, u_items_sorted):
 
-
     df = pd.read_csv(path, sep=',', engine='c', na_filter=False, low_memory=False)
     df.apply(lambda row: search_id(row, u_items, u_list_items), axis=1)
     sort_items(u_items, u_items_sorted)
@@ -106,7 +108,20 @@ def find_match_random(unique_users_random_items_anonymized, users_list_items_tru
             id_matching[same_user] = anonymized_user
 
 
-
+def find_users_increasing_item_number(users_list_items_analysis, users_list_items_truth, id_matching):
+    users_list_items_analysis_remaining = users_list_items_analysis.copy()
+    unique_user_truth_remaining = users_list_items_truth.copy()
+    for i in range(0, 6):
+        id_found = {}
+        unique_users_anonymized = {}
+        find_uniqueness_random_items(2, i, users_list_items_analysis_remaining, unique_users_anonymized)
+        find_match_random(unique_users_anonymized, unique_user_truth_remaining, id_found)
+        print(len(id_found), " users where found at this loop")
+        for user_found in id_found:
+            users_list_items_analysis_remaining.pop(id_found[user_found])
+            unique_user_truth_remaining.pop(user_found)
+        #add the new user found to id_matching
+        id_matching = {**id_found, **id_matching}
 
 
 
@@ -134,11 +149,26 @@ def main():
     unique_users_random_items_anonymized = {}
 
     file_analysis(path_analysis, users_items_analysis, users_list_items_analysis, users_items_sorted_analysis)
-    find_uniqueness_random_items(2, 4, users_list_items_analysis, unique_users_random_items_anonymized)
 
-    print("NB anonymized users potentially identifiable", len(unique_users_random_items_anonymized))
+    # Trying to match user by using the matching method step by step
     id_matching = {}
+    start = time.time()
+    find_users_increasing_item_number(users_list_items_analysis, users_list_items_truth, id_matching)
+    end = time.time()
+    time_increasing = end-start
+    print(time_increasing, "for the first one")
+
+
+    #Trying to match user by using the matching method directly
+    id_matching = {}
+    start = time.time()
+    find_uniqueness_random_items(2, 6, users_list_items_analysis, unique_users_random_items_anonymized)
+    print("NB anonymized users potentially identifiable", len(unique_users_random_items_anonymized))
     find_match_random(unique_users_random_items_anonymized, users_list_items_truth, id_matching)
+    end = time.time()
+    time_brute = end-start
+    print(time_brute, "for the second one")
+
     #print(id_matching)
 
     print("Nb identified", len(id_matching))
