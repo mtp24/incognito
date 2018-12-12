@@ -11,11 +11,13 @@ import numpy as np
 T_COL = {'id_user': 0, 'date': 1, 'hours': 2, 'id_item': 3, 'price': 4, 'qty': 5}
 users_to_items = {}
 items_to_users = {}
+result = {}
 nb_invalid = 0
 
 
 def search_id(row):
     global nb_invalid
+    global users_to_items
     id_user = row[T_COL['id_user']]
     id_date = row[T_COL['date']]
     try:
@@ -76,15 +78,30 @@ def find_user():
             if prd in items_to_users:
                 for user in items_to_users[prd]:
                     cnt[user] += 1
-        if len(cnt.most_common()) == 1 or cnt.most_common(2)[0][1] != cnt.most_common(2)[1][1]:
+        if len(cnt.most_common()) != 0 and (len(cnt.most_common()) == 1 or cnt.most_common(2)[0][1] != cnt.most_common(2)[1][1]):
             found_users +=1
-            result = found_users*100/len(users_to_items.items())
-            sys.stdout.write("\r{0}%".format(round(result,2)))
+            add_result(cnt.most_common(2)[0][0], puser)
+            percentage = found_users*100/len(users_to_items.items())
+            sys.stdout.write("\r{0}%".format(round(percentage, 2)))
             sys.stdout.flush()
     print("\n-----Final Result-----")
     print("Total of user : ", len(users_to_items.items()))
     print("Number of user identified :", found_users)
-    print("Percentage : ", round(result,2), '%')
+    print("Percentage : ", round(percentage, 2), '%')
+
+def add_result(founded, puser):
+    global result
+    date = founded.split(" ")[1]
+    user_found = founded.split(" ")[0]
+    user_mask = puser.split(" ")[0]
+    # if user_found not in result:
+    #     result[user_found] = {}
+    # result[user_found][date] = user_mask
+
+    if date not in result:
+        result[date] = {}
+    result[date][user_found] = user_mask
+
 
 def export_base():
     global items_to_users
@@ -106,25 +123,37 @@ def main():
     """
     print("Beginning of the script")
 
-    file_path = "./ouput.csv"
-    base_path = "./data/ground_truth.csv"
-    global users_to_items
-    global items_to_users
+    import os
+    for file in os.listdir("/home/maxime/Documents/Projets/incognito/S_files"):
+        print("Start attack for", file)
 
-    df = pd.read_csv(file_path, sep=',', engine='c', na_filter=False, low_memory=False)
-    base = pd.read_csv(base_path, sep=',', engine='c', na_filter=False, low_memory=False)
+        file_path = "./S_files/" + file
+        base_path = "./data/ground_truth.csv"
+        global users_to_items
+        global items_to_users
+        global result
 
-    #base.apply(search_product, axis=1)
-    #print("base done")
-    #export_base()
-    items_to_users = import_base()
-    print('Base imported')
+        users_to_items = {}
+        result = {}
 
-    df.apply(search_id, axis=1)
-    print("Number of invalid dates : ", nb_invalid)
-    print("Test imported")
+        df = pd.read_csv(file_path, sep=',', engine='c', na_filter=False, low_memory=False)
+        base = pd.read_csv(base_path, sep=',', engine='c', na_filter=False, low_memory=False)
 
-    find_user()
+        #base.apply(search_product, axis=1)
+        #print("base done")
+        #export_base()
+        items_to_users = import_base()
+        print('Base imported')
+
+        df.apply(search_id, axis=1)
+        print("Test imported")
+        print("Number of invalid dates : ", nb_invalid)
+
+        find_user()
+        df = pd.DataFrame(result)
+        result_path = "./Result_2/result_" + file
+        df.to_csv(result_path)
+        print("Finished, moving to next one")
 
     print("All clear")
 
